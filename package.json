@@ -1,18 +1,28 @@
 {
-  "name": "streamdeckremote",
+  "name": "streamdeck-remote",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "start:dev-client": "expo start --dev-client",
+    "android": "expo run:android",
+    "android:dev": "expo run:android",
+    "prebuild:android": "expo prebuild --platform android",
+    "ios": "expo run:ios",
+    "ios:dev": "expo run:ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^3.0.2",
     "expo": "~54.0.33",
+    "expo-dev-client": "~6.0.21",
     "expo-status-bar": "~3.0.9",
+    "lucide-react-native": "^1.14.0",
     "react": "19.1.0",
-    "react-native": "0.81.5"
+    "react-native": "0.81.5",
+    "react-native-svg": "^15.15.4",
+    "react-native-udp": "^4.1.7"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",

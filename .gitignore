@@ -5,6 +5,8 @@ node_modules/
 
 # Expo
 .expo/
+.gradle/
+.gradle-verify/
 dist/
 web-build/
 expo-env.d.ts
@@ -38,4 +40,3 @@ yarn-error.*
 
 # generated native folders
 /ios
-/android
