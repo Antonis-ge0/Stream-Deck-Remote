@@ -8,7 +8,13 @@
     "scheme": "streamdeckremote",
     "userInterfaceStyle": "automatic",
     "plugins": [
-      "expo-dev-client"
+      "expo-dev-client",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "StreamDeck Remote lets you choose button icons from your photo library."
+        }
+      ]
     ],
     "splash": {
       "image": "./assets/128x128@2x.png",
@@ -18,8 +24,10 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocalNetworkUsageDescription": "StreamDeck Remote connects to your Stream Deck desktop app on your local network."
-      }
+        "NSLocalNetworkUsageDescription": "StreamDeck Remote connects to your Stream Deck desktop app on your local network.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.antonisge0.streamdeckremote"
     },
     "android": {
       "permissions": [
@@ -29,7 +37,9 @@
         "BLUETOOTH_ADMIN",
         "BLUETOOTH_ADVERTISE",
         "BLUETOOTH_CONNECT",
-        "CHANGE_WIFI_MULTICAST_STATE"
+        "CHANGE_WIFI_MULTICAST_STATE",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/128x128@2x.png",

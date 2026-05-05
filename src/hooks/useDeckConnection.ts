@@ -90,6 +90,17 @@ export function useDeckConnection(settings: RemoteSettings) {
     [send]
   );
 
+  const saveConfig = useCallback(
+    (nextConfig: DeckConfig) => {
+      setConfig(nextConfig);
+      return send({
+        type: "saveConfig",
+        config: nextConfig,
+      });
+    },
+    [send]
+  );
+
   useEffect(() => {
     return () => {
       wsRef.current?.close();
@@ -103,6 +114,7 @@ export function useDeckConnection(settings: RemoteSettings) {
     endpoint,
     lastError,
     refreshConfig,
+    saveConfig,
     status,
     triggerButton,
   };

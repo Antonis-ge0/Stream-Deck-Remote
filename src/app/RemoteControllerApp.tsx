@@ -1,20 +1,24 @@
 import { StatusBar } from "expo-status-bar";
 import {
-  Alert,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { Moon, Sun } from "lucide-react-native";
+import { ChevronLeft, Moon, RefreshCw, Save, Sun, Trash } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
+import { ActionButton } from "../components/ActionButton";
+import { AppDialog, type AppDialogState } from "../components/AppDialog";
 import { IconButton } from "../components/IconButton";
-import { ConnectedPanel } from "../features/connection/ConnectedPanel";
 import { ConnectionPanel } from "../features/connection/ConnectionPanel";
+import {
+  DeckButtonEditor,
+  isValidButtonIcon,
+} from "../features/deck/DeckButtonEditor";
+import { DeckButtonList } from "../features/deck/DeckButtonList";
 import { DeckEmptyState } from "../features/deck/DeckEmptyState";
-import { DeckGrid } from "../features/deck/DeckGrid";
-import { ProfileTabs } from "../features/deck/ProfileTabs";
+import { ProfileDropdown } from "../features/deck/ProfileDropdown";
 import { KeyboardSignInPanel } from "../features/keyboard/KeyboardSignInPanel";
 import { PowerPanel } from "../features/power/PowerPanel";
 import { SecureSignInNotice } from "../features/security/SecureSignInNotice";
@@ -23,12 +27,16 @@ import { useDeckConnection } from "../hooks/useDeckConnection";
 import { useRemoteSettings } from "../hooks/useRemoteSettings";
 import { isValidMacAddress, sendWakeOnLan } from "../services/wakeOnLan";
 import { palettes, type AppColors } from "../theme/palette";
+import type { DeckButton, DeckConfig } from "../types/deck";
 import type { ThemeName, WakeStatus } from "../types/remote";
 
 export function RemoteControllerApp() {
   const [theme, setTheme] = useState<ThemeName>("dark");
   const [wakeStatus, setWakeStatus] = useState<WakeStatus>("idle");
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
+  const [editingButtonId, setEditingButtonId] = useState<string | null>(null);
+  const [editingDraft, setEditingDraft] = useState<DeckButton | null>(null);
+  const [dialog, setDialog] = useState<AppDialogState | null>(null);
   const colors = palettes[theme];
   const styles = createStyles(colors);
 
@@ -41,6 +49,7 @@ export function RemoteControllerApp() {
     endpoint,
     lastError,
     refreshConfig,
+    saveConfig,
     status,
     triggerButton,
   } = useDeckConnection(settings);
@@ -71,16 +80,46 @@ export function RemoteControllerApp() {
     );
   }, [activeProfileId, config]);
 
+  const editingButton = useMemo(
+    () => activeProfile?.buttons.find((button) => button.id === editingButtonId),
+    [activeProfile, editingButtonId]
+  );
+
+  useEffect(() => {
+    if (editingButtonId && !editingButton) {
+      closeEditor();
+    }
+  }, [editingButton, editingButtonId]);
+
+  function showNotice(title: string, message: string) {
+    setDialog({
+      title,
+      message,
+      actions: [
+        {
+          label: "OK",
+          onPress: () => setDialog(null),
+          tone: "primary",
+        },
+      ],
+    });
+  }
+
+  function closeEditor() {
+    setEditingButtonId(null);
+    setEditingDraft(null);
+  }
+
   async function wakePc() {
     if (!isValidMacAddress(settings.macAddress)) {
-      Alert.alert("Wake PC", "Enter the PC network adapter MAC address first.");
+      showNotice("Wake PC", "Enter the PC network adapter MAC address first.");
       return;
     }
 
     const wolPort = Number.parseInt(settings.wolPort, 10);
 
     if (!Number.isFinite(wolPort) || wolPort < 1 || wolPort > 65535) {
-      Alert.alert("Wake PC", "Enter a valid Wake-on-LAN port.");
+      showNotice("Wake PC", "Enter a valid Wake-on-LAN port.");
       return;
     }
 
@@ -94,7 +133,7 @@ export function RemoteControllerApp() {
       setWakeStatus("sent");
     } catch (error) {
       setWakeStatus("failed");
-      Alert.alert("Wake PC failed", toError(error).message);
+      showNotice("Wake PC Failed", toError(error).message);
     }
   }
 
@@ -102,8 +141,101 @@ export function RemoteControllerApp() {
     const sent = triggerButton(buttonId, activeProfile?.id);
 
     if (!sent) {
-      Alert.alert("Not connected", "Connect to the desktop app first.");
+      showNotice("Not Connected", "Connect to the desktop app first.");
     }
+  }
+
+  function persistConfig(nextConfig: DeckConfig) {
+    const sent = saveConfig(nextConfig);
+
+    if (!sent) {
+      showNotice(
+        "Saved locally",
+        "The app is not connected, so this change was not sent to the PC."
+      );
+    }
+  }
+
+  function openButtonEditor(buttonId: string) {
+    const button = activeProfile?.buttons.find((item) => item.id === buttonId);
+    if (!button) return;
+    setEditingButtonId(button.id);
+    setEditingDraft({
+      ...button,
+      icon: isValidButtonIcon(button.icon) ? button.icon : null,
+    });
+  }
+
+  function saveButton(nextButton = editingDraft) {
+    if (!config || !activeProfile) return;
+    if (!nextButton) return;
+
+    if (!isValidButtonIcon(nextButton.icon)) {
+      showNotice(
+        "Invalid Icon",
+        "Choose an image from your album or paste a valid http/https image URL."
+      );
+      return;
+    }
+
+    persistConfig({
+      ...config,
+      profiles: config.profiles.map((profile) =>
+        profile.id === activeProfile.id
+          ? {
+              ...profile,
+              buttons: profile.buttons.map((button) =>
+                button.id === nextButton.id ? nextButton : button
+              ),
+            }
+          : profile
+      ),
+    });
+
+    closeEditor();
+  }
+
+  function deleteButton(buttonId: string) {
+    if (!config || !activeProfile) return;
+
+    persistConfig({
+      ...config,
+      profiles: config.profiles.map((profile) =>
+        profile.id === activeProfile.id
+          ? {
+              ...profile,
+              buttons: profile.buttons.filter((button) => button.id !== buttonId),
+            }
+          : profile
+      ),
+    });
+
+    closeEditor();
+  }
+
+  function confirmDeleteButton() {
+    if (!editingDraft) return;
+
+    setDialog({
+      title: "Delete Button",
+      message: `Delete "${editingDraft.label || "this button"}"?`,
+      actions: [
+        {
+          label: "Cancel",
+          onPress: () => setDialog(null),
+          tone: "neutral",
+        },
+        {
+          label: "Delete",
+          onPress: () => {
+            const id = editingDraft.id;
+            setDialog(null);
+            deleteButton(id);
+          },
+          tone: "danger",
+        },
+      ],
+    });
   }
 
   return (
@@ -142,25 +274,62 @@ export function RemoteControllerApp() {
 
       {status === "connected" ? (
         <View style={styles.connected}>
-          <View style={styles.connectedPanelWrap}>
-            <ConnectedPanel
-              buttonCount={activeProfile?.buttons.length ?? 0}
+          <View style={styles.connectedTopBar}>
+            <ActionButton
               colors={colors}
-              endpoint={endpoint}
-              onBack={disconnect}
-              onSync={refreshConfig}
-              profileName={activeProfile?.name ?? "No profile selected"}
+              icon={ChevronLeft}
+              label="Back"
+              onPress={editingDraft ? closeEditor : disconnect}
+              tone="neutral"
             />
+            {editingDraft ? (
+              <View style={styles.editTopActions}>
+                <ActionButton
+                  colors={colors}
+                  icon={Save}
+                  label="Save"
+                  onPress={() => saveButton()}
+                  tone="primary"
+                />
+                <ActionButton
+                  colors={colors}
+                  icon={Trash}
+                  label="Delete"
+                  onPress={confirmDeleteButton}
+                  tone="danger"
+                />
+              </View>
+            ) : (
+              <ActionButton
+                colors={colors}
+                icon={RefreshCw}
+                label="Sync"
+                onPress={refreshConfig}
+                tone="primary"
+              />
+            )}
           </View>
 
-          <ProfileTabs
-            activeProfileId={activeProfile?.id ?? null}
-            colors={colors}
-            onSelect={setActiveProfileId}
-            profiles={config?.profiles ?? []}
-          />
+          {!editingDraft ? (
+            <View style={styles.connectedPanelWrap}>
+              <ProfileDropdown
+                activeProfileId={activeProfile?.id ?? null}
+                colors={colors}
+                onSelect={setActiveProfileId}
+                profiles={config?.profiles ?? []}
+              />
+            </View>
+          ) : null}
 
-          {!activeProfile ? (
+          {editingDraft ? (
+            <DeckButtonEditor
+              button={editingDraft}
+              colors={colors}
+              onChange={setEditingDraft}
+              onNotice={showNotice}
+              onRun={trigger}
+            />
+          ) : !activeProfile ? (
             <DeckEmptyState
               colors={colors}
               message="Create a profile in the Windows app, then sync again."
@@ -173,10 +342,10 @@ export function RemoteControllerApp() {
               title={activeProfile.name}
             />
           ) : (
-            <DeckGrid
+            <DeckButtonList
               buttons={activeProfile.buttons}
               colors={colors}
-              onTrigger={trigger}
+              onSelect={openButtonEditor}
             />
           )}
         </View>
@@ -223,6 +392,8 @@ export function RemoteControllerApp() {
           <SecureSignInNotice colors={colors} />
         </ScrollView>
       )}
+
+      <AppDialog colors={colors} dialog={dialog} />
     </SafeAreaView>
   );
 }
@@ -291,6 +462,17 @@ function createStyles(colors: AppColors) {
     },
     connected: {
       flex: 1,
+    },
+    connectedTopBar: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 12,
+      paddingBottom: 10,
+      paddingHorizontal: 16,
+    },
+    editTopActions: {
+      flexDirection: "row",
+      gap: 8,
     },
     connectedPanelWrap: {
       paddingHorizontal: 16,

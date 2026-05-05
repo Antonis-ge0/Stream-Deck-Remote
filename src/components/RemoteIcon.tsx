@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import type { AppColors } from "../theme/palette";
 
 type RemoteIconProps = {
@@ -8,7 +8,7 @@ type RemoteIconProps = {
 };
 
 export function RemoteIcon({ colors, icon, size }: RemoteIconProps) {
-  if (!icon) {
+  if (!isImageIcon(icon)) {
     return (
       <View
         style={[
@@ -25,28 +25,21 @@ export function RemoteIcon({ colors, icon, size }: RemoteIconProps) {
     );
   }
 
-  const isImage =
-    icon.startsWith("data:") || icon.startsWith("http") || icon.startsWith("/");
+  return (
+    <Image
+      source={{ uri: icon }}
+      style={{ width: size, height: size, resizeMode: "contain" }}
+    />
+  );
+}
 
-  if (isImage) {
-    return (
-      <Image
-        source={{ uri: icon }}
-        style={{ width: size, height: size, resizeMode: "contain" }}
-      />
-    );
-  }
+function isImageIcon(icon?: string | null): icon is string {
+  if (!icon) return false;
 
   return (
-    <Text
-      style={{
-        color: colors.text,
-        fontSize: Math.max(24, size * 0.82),
-        lineHeight: size,
-      }}
-    >
-      {icon}
-    </Text>
+    icon.startsWith("data:image") ||
+    icon.startsWith("http://") ||
+    icon.startsWith("https://")
   );
 }
 

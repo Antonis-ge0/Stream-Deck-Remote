@@ -37,3 +37,17 @@ expoAutolinking.useExpoVersionCatalog()
 
 include ':app'
 includeBuild(expoAutolinking.reactNativeGradlePlugin)
+
+def includeReactNativeLibrary = { name, path ->
+  def projectName = ":${name}"
+  if (findProject(projectName) == null) {
+    include projectName
+  }
+  project(projectName).projectDir = new File(rootDir, path)
+}
+
+// Keep EAS/Gradle cloud builds from resolving these autolinked modules as
+// empty projects when the autolinking environment differs from local builds.
+includeReactNativeLibrary('react-native-async-storage_async-storage', '../node_modules/@react-native-async-storage/async-storage/android')
+includeReactNativeLibrary('react-native-svg', '../node_modules/react-native-svg/android')
+includeReactNativeLibrary('react-native-udp', '../node_modules/react-native-udp/android')

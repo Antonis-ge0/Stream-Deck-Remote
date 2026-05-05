@@ -1,4 +1,9 @@
+import { NativeModules } from "react-native";
 import UdpSockets from "react-native-udp";
+import {
+  nativeWakeOnLanAvailable,
+  sendNativeWakeOnLan,
+} from "../native/WakeOnLan";
 
 export type WakeOnLanOptions = {
   macAddress: string;
@@ -37,6 +42,26 @@ export function createMagicPacket(macAddress: string) {
 
 export async function sendWakeOnLan(options: WakeOnLanOptions) {
   const packet = createMagicPacket(options.macAddress);
+
+  if (nativeWakeOnLanAvailable) {
+    await sendNativeWakeOnLan(
+      options.macAddress,
+      options.broadcastAddress,
+      options.port
+    );
+    return;
+  }
+
+  const udpNativeAvailable =
+    Boolean(NativeModules.UdpSockets) &&
+    Boolean(UdpSockets) &&
+    typeof UdpSockets.createSocket === "function";
+
+  if (!udpNativeAvailable) {
+    throw new Error(
+      "Wake-on-LAN requires the Android native dev build. Open the app installed by npm run android:dev, not Expo Go."
+    );
+  }
 
   return new Promise<void>((resolve, reject) => {
     let timeout: ReturnType<typeof setTimeout> | undefined;
