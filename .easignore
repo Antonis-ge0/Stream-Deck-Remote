@@ -1,5 +1,3 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
 # dependencies
 node_modules/
 
@@ -11,8 +9,12 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
+# Native local/build-only files
 .kotlin/
+android/.gradle/
+android/.cxx/
+android/build/
+android/app/build/
 android/local.properties
 *.orig.*
 *.jks
@@ -39,5 +41,5 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-# generated native folders
+# generated native folders not used by this Android build
 /ios
