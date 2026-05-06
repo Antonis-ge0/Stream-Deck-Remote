@@ -19,4 +19,5 @@ export type DeckButton = {
 export type DeckAction =
   | { type: "openUrl"; url: string }
   | { type: "launchApp"; path: string; args?: string[] }
-  | { type: "playSound"; sound: string };
+  | { type: "playSound"; sound: string }
+  | { type: "openFolder"; path: string };

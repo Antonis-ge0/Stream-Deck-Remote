@@ -1,4 +1,4 @@
-# StreamDeck Remote
+# Stream Deck Remote
 
 Mobile controller for the Windows `streamdeck-clone` app. The desktop app owns the profiles, buttons, and action execution; this app wakes the PC, connects to the desktop WebSocket server, mirrors the active deck config, and sends button trigger commands.
 
@@ -33,6 +33,38 @@ eas build --profile development --platform android
 npm run start:dev-client
 ```
 
+## Standalone APK
+
+Use the standalone APK build when you want the phone app to run without Metro,
+Expo Go, or a dev server on the PC. This APK still needs the Windows
+`streamdeck-clone` app after sign-in because the Windows app owns and executes
+the desktop actions.
+
+Cloud APK build:
+
+```bash
+npm run build:apk
+```
+
+After EAS finishes, install the APK it gives you on the Android phone.
+
+Local APK build on this PC:
+
+```bash
+$env:JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"
+npm run android:release
+```
+
+The local APK is written to:
+
+```text
+android/app/build/outputs/apk/release/app-release.apk
+```
+
+This local release currently uses the generated debug signing config, so Android
+may show it as an app from an unknown source. That is fine for personal testing.
+For sharing broadly, create a real release keystore.
+
 ## Wake-on-LAN
 
 Wake-on-LAN sends a UDP magic packet to the configured MAC address. It requires:
@@ -50,7 +82,7 @@ The app uses its own Android `WakeOnLan` native module first, then falls back to
 2. On Windows, find the wired or Wi-Fi adapter MAC address with `ipconfig /all`.
 3. Enable Wake-on-LAN in BIOS/UEFI and in the Windows network adapter advanced settings.
 4. In the app, set MAC address, broadcast address, and WOL port. Start with `255.255.255.255` and port `9`; if your router blocks global broadcast, use your subnet broadcast such as `192.168.1.255`.
-5. Put the PC to Sleep first and tap **Wake** in the app.
+5. Put the PC to Sleep first and tap **Start PC** in the app.
 6. After Sleep works, test shutdown/hibernate only if your motherboard and adapter support WOL from that power state.
 
 Wake-on-LAN cannot be guaranteed by app code alone; BIOS, adapter power settings, router broadcast behavior, and phone LAN isolation all matter. The app sends the magic packet three times from native Android UDP.
@@ -88,7 +120,22 @@ This app does not store or auto-type the Windows PIN. The Bluetooth keyboard mod
 
 ## Desktop Startup
 
-For automatic availability after sign-in, register the Windows `streamdeck-clone` app as a startup app. The quick Windows path is to add a shortcut to `shell:startup`; the product-code path is to add Tauri autostart support in the desktop project. This mobile repo only controls the remote side.
+For automatic availability after sign-in, open the Windows `streamdeck-clone`
+app and enable both settings in `General`:
+
+- `Launch on startup`
+- `Start minimized to tray`
+
+With those enabled, the normal flow is:
+
+1. Open the standalone APK on the phone.
+2. Tap **Start PC**.
+3. Tap **Sign In** and use the phone keyboard or Enter button.
+4. After Windows signs in, the desktop app starts in the tray/background.
+5. Tap **Desktop App** on the phone, connect, sync, and run buttons.
+
+The phone cannot run Windows actions by itself. It sends commands to the desktop
+app, and the desktop app executes them on the PC.
 
 ## Development
 

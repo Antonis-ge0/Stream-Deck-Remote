@@ -4,13 +4,13 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  Pressable,
   View,
 } from "react-native";
-import { ChevronLeft, Moon, RefreshCw, Save, Sun, Trash } from "lucide-react-native";
+import { ChevronLeft, RefreshCw, Save, Settings, Trash } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { ActionButton } from "../components/ActionButton";
 import { AppDialog, type AppDialogState } from "../components/AppDialog";
-import { IconButton } from "../components/IconButton";
 import { ConnectionPanel } from "../features/connection/ConnectionPanel";
 import {
   DeckButtonEditor,
@@ -19,9 +19,10 @@ import {
 import { DeckButtonList } from "../features/deck/DeckButtonList";
 import { DeckEmptyState } from "../features/deck/DeckEmptyState";
 import { ProfileDropdown } from "../features/deck/ProfileDropdown";
+import { HomeScreen } from "../features/home/HomeScreen";
 import { KeyboardSignInPanel } from "../features/keyboard/KeyboardSignInPanel";
 import { PowerPanel } from "../features/power/PowerPanel";
-import { SecureSignInNotice } from "../features/security/SecureSignInNotice";
+import { SettingsMenuScreen } from "../features/settings/SettingsMenuScreen";
 import { useBluetoothKeyboard } from "../hooks/useBluetoothKeyboard";
 import { useDeckConnection } from "../hooks/useDeckConnection";
 import { useRemoteSettings } from "../hooks/useRemoteSettings";
@@ -30,8 +31,11 @@ import { palettes, type AppColors } from "../theme/palette";
 import type { DeckButton, DeckConfig } from "../types/deck";
 import type { ThemeName, WakeStatus } from "../types/remote";
 
+type AppSection = "home" | "power" | "signIn" | "desktop" | "settings";
+
 export function RemoteControllerApp() {
   const [theme, setTheme] = useState<ThemeName>("dark");
+  const [activeSection, setActiveSection] = useState<AppSection>("home");
   const [wakeStatus, setWakeStatus] = useState<WakeStatus>("idle");
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [editingButtonId, setEditingButtonId] = useState<string | null>(null);
@@ -110,16 +114,21 @@ export function RemoteControllerApp() {
     setEditingDraft(null);
   }
 
+  function goHome() {
+    closeEditor();
+    setActiveSection("home");
+  }
+
   async function wakePc() {
     if (!isValidMacAddress(settings.macAddress)) {
-      showNotice("Wake PC", "Enter the PC network adapter MAC address first.");
+      showNotice("Start PC", "Enter the PC network adapter MAC address first.");
       return;
     }
 
     const wolPort = Number.parseInt(settings.wolPort, 10);
 
     if (!Number.isFinite(wolPort) || wolPort < 1 || wolPort > 65535) {
-      showNotice("Wake PC", "Enter a valid Wake-on-LAN port.");
+      showNotice("Start PC", "Enter a valid Wake-on-LAN port.");
       return;
     }
 
@@ -131,9 +140,10 @@ export function RemoteControllerApp() {
         port: wolPort,
       });
       setWakeStatus("sent");
+      showNotice("Start PC", "Start PC signal sent.");
     } catch (error) {
       setWakeStatus("failed");
-      showNotice("Wake PC Failed", toError(error).message);
+      showNotice("Start PC Failed", toError(error).message);
     }
   }
 
@@ -243,43 +253,74 @@ export function RemoteControllerApp() {
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
 
       <View style={styles.header}>
-        <View style={styles.titleGroup}>
-          <Text
-            adjustsFontSizeToFit
-            minimumFontScale={0.78}
-            numberOfLines={1}
-            style={styles.title}
-          >
-            StreamDeck Remote
-          </Text>
-          <View style={styles.statusLine}>
-            <View
-              style={[
-                styles.statusDot,
-                status === "connected" && styles.connectedDot,
-                status === "connecting" && styles.connectingDot,
-              ]}
-            />
-            <Text style={styles.subtitle}>{statusLabel(status)}</Text>
+        {activeSection === "home" ? (
+          <View style={styles.headerSpacer} />
+        ) : (
+          <View style={styles.titleGroup}>
+            <Text
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
+              numberOfLines={1}
+              style={styles.title}
+            >
+              Stream Deck Remote
+            </Text>
+            <View style={styles.statusLine}>
+              <View
+                style={[
+                  styles.statusDot,
+                  status === "connected" && styles.connectedDot,
+                  status === "connecting" && styles.connectingDot,
+                ]}
+              />
+              <Text style={styles.subtitle}>{statusLabel(status)}</Text>
+            </View>
           </View>
-        </View>
+        )}
 
-        <IconButton
-          colors={colors}
-          icon={theme === "dark" ? Sun : Moon}
-          label={theme === "dark" ? "Light" : "Dark"}
-          onPress={() => setTheme(theme === "dark" ? "light" : "dark")}
-        />
+        <Pressable
+          accessibilityLabel="Options"
+          accessibilityRole="button"
+          onPress={() => setActiveSection("settings")}
+          style={({ pressed }) => [
+            styles.settingsButton,
+            activeSection === "settings" && styles.activeSettingsButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Settings
+            color={
+              activeSection === "settings" ? colors.primaryText : colors.text
+            }
+            size={20}
+            strokeWidth={2.5}
+          />
+        </Pressable>
       </View>
 
-      {status === "connected" ? (
+      {activeSection === "home" ? (
+        <HomeScreen
+          colors={colors}
+          onDesktop={() => setActiveSection("desktop")}
+          onPower={() => setActiveSection("power")}
+          onSignIn={() => setActiveSection("signIn")}
+        />
+      ) : activeSection === "settings" ? (
+        <SettingsMenuScreen
+          colors={colors}
+          onBack={goHome}
+          onNotice={showNotice}
+          onThemeChange={setTheme}
+          theme={theme}
+        />
+      ) : activeSection === "desktop" && status === "connected" ? (
         <View style={styles.connected}>
           <View style={styles.connectedTopBar}>
             <ActionButton
               colors={colors}
               icon={ChevronLeft}
               label="Back"
-              onPress={editingDraft ? closeEditor : disconnect}
+              onPress={editingDraft ? closeEditor : goHome}
               tone="neutral"
             />
             {editingDraft ? (
@@ -355,41 +396,55 @@ export function RemoteControllerApp() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <PowerPanel
-            colors={colors}
-            onSettingsChange={updateSettings}
-            onWake={wakePc}
-            settings={settings}
-            wakeStatus={wakeStatus}
-          />
+          <View style={styles.sectionTopBar}>
+            <ActionButton
+              colors={colors}
+              icon={ChevronLeft}
+              label="Back"
+              onPress={goHome}
+              tone="neutral"
+            />
+          </View>
 
-          <KeyboardSignInPanel
-            bondedHosts={bluetoothKeyboard.bondedHosts}
-            busy={bluetoothKeyboard.busy}
-            colors={colors}
-            error={bluetoothKeyboard.error}
-            onConnectHost={bluetoothKeyboard.connectHost}
-            onDisable={bluetoothKeyboard.disable}
-            onEnable={bluetoothKeyboard.enable}
-            onOpenSettings={bluetoothKeyboard.openSettings}
-            onRefresh={bluetoothKeyboard.refresh}
-            onSendKey={bluetoothKeyboard.sendKey}
-            status={bluetoothKeyboard.status}
-          />
+          {activeSection === "power" ? (
+            <PowerPanel
+              colors={colors}
+              onSettingsChange={updateSettings}
+              onWake={wakePc}
+              settings={settings}
+              wakeStatus={wakeStatus}
+            />
+          ) : null}
 
-          <ConnectionPanel
-            colors={colors}
-            endpoint={endpoint}
-            lastError={lastError}
-            onConnect={connect}
-            onDisconnect={disconnect}
-            onRefresh={refreshConfig}
-            onSettingsChange={updateSettings}
-            settings={settings}
-            status={status}
-          />
+          {activeSection === "signIn" ? (
+            <KeyboardSignInPanel
+              bondedHosts={bluetoothKeyboard.bondedHosts}
+              busy={bluetoothKeyboard.busy}
+              colors={colors}
+              error={bluetoothKeyboard.error}
+              onConnectHost={bluetoothKeyboard.connectHost}
+              onDisable={bluetoothKeyboard.disable}
+              onEnable={bluetoothKeyboard.enable}
+              onOpenSettings={bluetoothKeyboard.openSettings}
+              onRefresh={bluetoothKeyboard.refresh}
+              onSendKey={bluetoothKeyboard.sendKey}
+              status={bluetoothKeyboard.status}
+            />
+          ) : null}
 
-          <SecureSignInNotice colors={colors} />
+          {activeSection === "desktop" ? (
+            <ConnectionPanel
+              colors={colors}
+              endpoint={endpoint}
+              lastError={lastError}
+              onConnect={connect}
+              onDisconnect={disconnect}
+              onRefresh={refreshConfig}
+              onSettingsChange={updateSettings}
+              settings={settings}
+              status={status}
+            />
+          ) : null}
         </ScrollView>
       )}
 
@@ -427,6 +482,24 @@ function createStyles(colors: AppColors) {
     titleGroup: {
       flex: 1,
     },
+    headerSpacer: {
+      flex: 1,
+    },
+    settingsButton: {
+      alignItems: "center",
+      backgroundColor: colors.panel,
+      borderColor: colors.border,
+      borderRadius: 8,
+      borderWidth: 1,
+      height: 44,
+      justifyContent: "center",
+      marginTop: 8,
+      width: 44,
+    },
+    activeSettingsButton: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
     title: {
       color: colors.text,
       fontSize: 26,
@@ -460,6 +533,10 @@ function createStyles(colors: AppColors) {
       padding: 16,
       paddingBottom: 28,
     },
+    sectionTopBar: {
+      alignItems: "flex-start",
+      marginBottom: 2,
+    },
     connected: {
       flex: 1,
     },
@@ -477,6 +554,9 @@ function createStyles(colors: AppColors) {
     connectedPanelWrap: {
       paddingHorizontal: 16,
       paddingBottom: 8,
+    },
+    pressed: {
+      opacity: 0.72,
     },
   });
 }

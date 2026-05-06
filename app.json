@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "StreamDeck Remote",
+    "name": "Stream Deck Remote",
     "slug": "streamdeck-remote",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -45,6 +45,7 @@
         "foregroundImage": "./assets/128x128@2x.png",
         "backgroundColor": "#101214"
       },
+      "usesCleartextTraffic": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.antonis_ge0.streamdeckremote"
     },

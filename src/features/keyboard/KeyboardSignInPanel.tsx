@@ -3,6 +3,7 @@ import {
   Delete,
   Keyboard,
   Link as LinkIcon,
+  LogIn,
   RefreshCw,
 } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -110,6 +111,15 @@ export function KeyboardSignInPanel({
           ))}
         </View>
       ) : null}
+
+      <ActionButton
+        colors={colors}
+        disabled={!ready}
+        icon={LogIn}
+        label="Sign In"
+        onPress={() => onSendKey("ENTER")}
+        tone="accent"
+      />
 
       <View style={[styles.keypad, !ready && styles.disabledKeypad]}>
         {keypadRows.map((row) => (
@@ -240,6 +250,7 @@ function createStyles(colors: AppColors) {
     },
     keypad: {
       gap: 9,
+      marginTop: 12,
     },
     disabledKeypad: {
       opacity: 0.46,

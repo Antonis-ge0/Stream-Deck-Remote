@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   AppWindow,
+  Folder,
   Image as ImageIcon,
   Link,
   Play,
@@ -31,6 +32,7 @@ const ACTION_TYPES: Array<{
 }> = [
   { icon: Link, label: "URL", type: "openUrl" },
   { icon: AppWindow, label: "App", type: "launchApp" },
+  { icon: Folder, label: "Folder", type: "openFolder" },
   { icon: Volume2, label: "Sound", type: "playSound" },
 ];
 
@@ -56,12 +58,14 @@ export function DeckButtonEditor({
   function setActionType(type: DeckAction["type"]) {
     if (type === "openUrl") setAction({ type, url: "" });
     if (type === "launchApp") setAction({ type, path: "", args: [] });
+    if (type === "openFolder") setAction({ type, path: "" });
     if (type === "playSound") setAction({ type, sound: "" });
   }
 
   function updateActionValue(value: string) {
     if (action.type === "openUrl") setAction({ ...action, url: value });
     if (action.type === "launchApp") setAction({ ...action, path: value });
+    if (action.type === "openFolder") setAction({ ...action, path: value });
     if (action.type === "playSound") setAction({ ...action, sound: value });
   }
 
@@ -251,24 +255,28 @@ function primaryAction(button: DeckButton): DeckAction {
 function actionLabel(action: DeckAction) {
   if (action.type === "openUrl") return action.url || "URL action";
   if (action.type === "launchApp") return action.path || "App action";
+  if (action.type === "openFolder") return action.path || "Folder action";
   return action.sound || "Sound action";
 }
 
 function actionInputLabel(action: DeckAction) {
   if (action.type === "openUrl") return "URL";
   if (action.type === "launchApp") return "Application path";
+  if (action.type === "openFolder") return "Folder path";
   return "Sound path or data URL";
 }
 
 function actionPlaceholder(action: DeckAction) {
   if (action.type === "openUrl") return "https://example.com";
   if (action.type === "launchApp") return "C:\\Program Files\\App\\app.exe";
+  if (action.type === "openFolder") return "C:\\Users\\PC\\Desktop";
   return "C:\\Sounds\\sound.mp3";
 }
 
 function actionValue(action: DeckAction) {
   if (action.type === "openUrl") return action.url;
   if (action.type === "launchApp") return action.path;
+  if (action.type === "openFolder") return action.path;
   return action.sound;
 }
 

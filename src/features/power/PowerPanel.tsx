@@ -1,5 +1,5 @@
 import { Power, Zap } from "lucide-react-native";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ActionButton } from "../../components/ActionButton";
 import { Section } from "../../components/Section";
 import { TextField } from "../../components/TextField";
@@ -24,7 +24,7 @@ export function PowerPanel({
   const styles = createStyles(colors);
 
   return (
-    <Section colors={colors} eyebrow="Power" title="Wake PC">
+    <Section colors={colors} eyebrow="Power" title="Start PC">
       <TextField
         colors={colors}
         label="PC MAC address"
@@ -58,14 +58,10 @@ export function PowerPanel({
         busy={wakeStatus === "sending"}
         colors={colors}
         icon={wakeStatus === "sent" ? Zap : Power}
-        label={wakeStatus === "sending" ? "Sending" : "Wake"}
+        label={wakeStatus === "sending" ? "Sending" : "Start PC"}
         onPress={onWake}
         tone="accent"
       />
-
-      <Text style={styles.note}>
-        Native UDP build required. Expo Go can connect, but cannot send WOL.
-      </Text>
     </Section>
   );
 }
@@ -77,13 +73,6 @@ function createStyles(colors: AppColors) {
       gap: 10,
       marginTop: 12,
       marginBottom: 14,
-    },
-    note: {
-      color: colors.muted,
-      fontSize: 12,
-      fontWeight: "700",
-      lineHeight: 17,
-      marginTop: 10,
     },
   });
 }

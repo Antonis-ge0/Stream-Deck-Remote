@@ -16,6 +16,15 @@
         "simulator": true
       }
     },
+    "apk": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_USE_COMMUNITY_AUTOLINKING": "0"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "env": {
