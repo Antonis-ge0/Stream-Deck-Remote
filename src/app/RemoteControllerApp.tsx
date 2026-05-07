@@ -183,7 +183,7 @@ export function RemoteControllerApp() {
     if (!isValidButtonIcon(nextButton.icon)) {
       showNotice(
         "Invalid Icon",
-        "Choose an image from your album or paste a valid http/https image URL."
+        "Use an emoji, choose an image from your album, or paste a valid http/https image URL."
       );
       return;
     }
@@ -475,9 +475,12 @@ function createStyles(colors: AppColors) {
       flexDirection: "row",
       gap: 12,
       justifyContent: "space-between",
+      minHeight: 68,
       paddingBottom: 12,
       paddingHorizontal: 16,
+      paddingRight: 76,
       paddingTop: 14,
+      position: "relative",
     },
     titleGroup: {
       flex: 1,
@@ -493,7 +496,9 @@ function createStyles(colors: AppColors) {
       borderWidth: 1,
       height: 44,
       justifyContent: "center",
-      marginTop: 8,
+      position: "absolute",
+      right: 16,
+      top: 18,
       width: 44,
     },
     activeSettingsButton: {

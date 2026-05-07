@@ -16,6 +16,12 @@ import { Section } from "../../components/Section";
 import { TextField } from "../../components/TextField";
 import type { AppColors } from "../../theme/palette";
 import type { DeckAction, DeckButton } from "../../types/deck";
+import {
+  isRemoteImage,
+  isValidButtonIcon,
+} from "../../utils/iconValidation";
+
+export { isValidButtonIcon };
 
 type DeckButtonEditorProps = {
   button: DeckButton;
@@ -231,21 +237,6 @@ export function DeckButtonEditor({
       />
     </ScrollView>
   );
-}
-
-export function isValidButtonIcon(icon?: string | null) {
-  return !icon || icon.startsWith("data:image") || isRemoteImage(icon);
-}
-
-function isRemoteImage(value?: string | null) {
-  if (!value) return false;
-
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
 }
 
 function primaryAction(button: DeckButton): DeckAction {

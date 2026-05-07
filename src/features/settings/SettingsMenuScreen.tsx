@@ -11,6 +11,7 @@ import {
 import {
   Check,
   ChevronLeft,
+  Download,
   HelpCircle,
   Info,
   MessageSquareMore,
@@ -22,10 +23,27 @@ import {
 } from "lucide-react-native";
 import { ActionButton } from "../../components/ActionButton";
 import { APP_CONFIG } from "../../config/appConfig";
+import {
+  installApkFromUrl,
+  openApkInstallPermissionSettings,
+} from "../../native/ApkInstaller";
+import {
+  checkForAppUpdate,
+  type AvailableUpdate,
+} from "../../services/updateService";
 import type { AppColors } from "../../theme/palette";
 import type { ThemeName } from "../../types/remote";
 
 type MenuSection = "menu" | "general" | "help" | "feedback" | "updates" | "about";
+type FeedbackStatus = "idle" | "error";
+type UpdateStatus =
+  | "idle"
+  | "checking"
+  | "current"
+  | "available"
+  | "installing"
+  | "permission"
+  | "error";
 
 type SettingsMenuScreenProps = {
   colors: AppColors;
@@ -72,9 +90,9 @@ const HELP_TIPS = [
       "Open a button detail page, press Delete, then confirm in the themed dialog.",
   },
   {
-    title: "Use image icons",
+    title: "Use button icons",
     description:
-      "Choose an image from your phone album or paste a valid http/https image URL.",
+      "Use emoji icons from the desktop app, choose an image from your phone album, or paste a valid http/https image URL.",
   },
 ] as const;
 
@@ -87,10 +105,23 @@ export function SettingsMenuScreen({
 }: SettingsMenuScreenProps) {
   const styles = createStyles(colors);
   const [section, setSection] = useState<MenuSection>("menu");
+  const [feedbackStatus, setFeedbackStatus] = useState<FeedbackStatus>("idle");
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>("idle");
   const [updateMessage, setUpdateMessage] = useState(
-    "Check the mobile build version installed on this phone."
+    "Check if a new version is available."
+  );
+  const [availableUpdate, setAvailableUpdate] = useState<AvailableUpdate | null>(
+    null
   );
   const sectionTitle = titleForSection(section);
+
+  function handleSectionChange(nextSection: MenuSection) {
+    setSection(nextSection);
+
+    if (nextSection === "feedback") {
+      setFeedbackStatus("idle");
+    }
+  }
 
   function goBack() {
     if (section !== "menu") {
@@ -102,6 +133,13 @@ export function SettingsMenuScreen({
   }
 
   async function openFeedbackForm() {
+    setFeedbackStatus("idle");
+
+    if (!APP_CONFIG.feedbackFormUrl) {
+      setFeedbackStatus("error");
+      return;
+    }
+
     try {
       const canOpen = await Linking.canOpenURL(APP_CONFIG.feedbackFormUrl);
 
@@ -111,15 +149,98 @@ export function SettingsMenuScreen({
 
       await Linking.openURL(APP_CONFIG.feedbackFormUrl);
     } catch (error) {
+      setFeedbackStatus("error");
       onNotice("Share Feedback", toError(error).message);
     }
   }
 
-  function checkForUpdates() {
+  async function openDefaultAppsSettings() {
+    try {
+      await Linking.sendIntent("android.settings.MANAGE_DEFAULT_APPS_SETTINGS");
+    } catch {
+      try {
+        await Linking.openSettings();
+      } catch (error) {
+        onNotice("Default Apps Settings", toError(error).message);
+      }
+    }
+  }
+
+  async function checkForUpdates() {
     setSection("updates");
-    setUpdateMessage(
-      "This dev build does not have an in-app updater configured. Install a newer Android build when one is available."
-    );
+    setAvailableUpdate(null);
+    setUpdateStatus("checking");
+    setUpdateMessage("Checking for updates...");
+
+    try {
+      const update = await checkForAppUpdate();
+
+      if (!update) {
+        setUpdateStatus("current");
+        setUpdateMessage("You are running the latest version.");
+        return;
+      }
+
+      setAvailableUpdate(update);
+      setUpdateStatus("available");
+      setUpdateMessage(`Version ${update.version} is available.`);
+    } catch (error) {
+      setUpdateStatus("error");
+      setUpdateMessage(toError(error).message);
+    }
+  }
+
+  async function installUpdate() {
+    if (!availableUpdate) return;
+
+    if (!availableUpdate.apkUrl) {
+      await openUpdateRelease();
+      return;
+    }
+
+    setUpdateStatus("installing");
+    setUpdateMessage("Downloading update and opening Android installer...");
+
+    try {
+      await installApkFromUrl(
+        availableUpdate.apkUrl,
+        availableUpdate.apkName ??
+          `stream-deck-remote-${availableUpdate.version}.apk`
+      );
+      setUpdateStatus("available");
+      setUpdateMessage("Approve the Android installer to replace this app.");
+    } catch (error) {
+      const message = toError(error).message;
+
+      if (message.includes("Install permission")) {
+        setUpdateStatus("permission");
+        setUpdateMessage(
+          "Allow this app to install unknown apps, then tap Install Update again."
+        );
+        return;
+      }
+
+      setUpdateStatus("error");
+      setUpdateMessage(message);
+    }
+  }
+
+  async function openUpdateRelease() {
+    const url = availableUpdate?.releaseUrl ?? APP_CONFIG.latestReleaseUrl;
+
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      onNotice("Check for Updates", toError(error).message);
+    }
+  }
+
+  async function openInstallSettings() {
+    try {
+      await openApkInstallPermissionSettings();
+    } catch (error) {
+      onNotice("Install Permission", toError(error).message);
+    }
   }
 
   return (
@@ -145,19 +266,19 @@ export function SettingsMenuScreen({
               colors={colors}
               icon={Settings}
               label="General"
-              onPress={() => setSection("general")}
+              onPress={() => handleSectionChange("general")}
             />
             <MenuItem
               colors={colors}
               icon={HelpCircle}
               label="Help"
-              onPress={() => setSection("help")}
+              onPress={() => handleSectionChange("help")}
             />
             <MenuItem
               colors={colors}
               icon={MessageSquareMore}
               label="Share Feedback"
-              onPress={() => setSection("feedback")}
+              onPress={() => handleSectionChange("feedback")}
             />
             <MenuItem
               colors={colors}
@@ -169,7 +290,7 @@ export function SettingsMenuScreen({
               colors={colors}
               icon={Info}
               label="About"
-              onPress={() => setSection("about")}
+              onPress={() => handleSectionChange("about")}
             />
           </View>
         ) : null}
@@ -231,9 +352,11 @@ export function SettingsMenuScreen({
         {section === "feedback" ? (
           <View style={styles.section}>
             <View style={styles.heroCard}>
-              <Text style={styles.heroTitle}>Share Feedback</Text>
+              <Text style={styles.heroTitle}>General Feedback</Text>
               <Text style={styles.heroText}>
-                Send ideas, bug reports, or UI notes for the mobile remote app.
+                How's your experience with Stream Deck so far? We'd love to
+                hear your thoughts. Send ideas, bug reports, or UI notes
+                through the feedback form below.
               </Text>
             </View>
 
@@ -244,6 +367,23 @@ export function SettingsMenuScreen({
               onPress={openFeedbackForm}
               tone="primary"
             />
+
+            {feedbackStatus === "error" ? (
+              <>
+                <Text style={styles.hint}>
+                  The form could not be opened automatically. Check that Android
+                  has a default browser selected for web links.
+                </Text>
+
+                <ActionButton
+                  colors={colors}
+                  icon={Settings}
+                  label="Open Default Apps Settings"
+                  onPress={openDefaultAppsSettings}
+                  tone="neutral"
+                />
+              </>
+            ) : null}
           </View>
         ) : null}
 
@@ -252,6 +392,9 @@ export function SettingsMenuScreen({
             <View style={styles.heroCard}>
               <Text style={styles.heroTitle}>{APP_CONFIG.name}</Text>
               <Text style={styles.heroText}>{updateMessage}</Text>
+              {availableUpdate?.body ? (
+                <Text style={styles.hint}>{availableUpdate.body}</Text>
+              ) : null}
               <Text style={styles.hint}>Current version {APP_CONFIG.version}</Text>
             </View>
 
@@ -259,9 +402,41 @@ export function SettingsMenuScreen({
               colors={colors}
               icon={RefreshCw}
               label="Check Again"
+              busy={updateStatus === "checking"}
+              disabled={updateStatus === "installing"}
               onPress={checkForUpdates}
               tone="neutral"
             />
+
+            {updateStatus === "available" || updateStatus === "installing" ? (
+              <ActionButton
+                colors={colors}
+                icon={Download}
+                label={availableUpdate?.apkUrl ? "Install Update" : "Open Release"}
+                busy={updateStatus === "installing"}
+                onPress={installUpdate}
+                tone="primary"
+              />
+            ) : null}
+
+            {updateStatus === "permission" ? (
+              <>
+                <ActionButton
+                  colors={colors}
+                  icon={Settings}
+                  label="Allow APK Installs"
+                  onPress={openInstallSettings}
+                  tone="primary"
+                />
+                <ActionButton
+                  colors={colors}
+                  icon={Download}
+                  label="Install Update"
+                  onPress={installUpdate}
+                  tone="neutral"
+                />
+              </>
+            ) : null}
           </View>
         ) : null}
 

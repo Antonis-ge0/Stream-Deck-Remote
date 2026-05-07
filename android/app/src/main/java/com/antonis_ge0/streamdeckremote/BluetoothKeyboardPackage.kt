@@ -10,7 +10,8 @@ class BluetoothKeyboardPackage : ReactPackage {
   override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
     return listOf(
       BluetoothKeyboardModule(reactContext),
-      WakeOnLanModule(reactContext)
+      WakeOnLanModule(reactContext),
+      ApkInstallerModule(reactContext)
     )
   }
 

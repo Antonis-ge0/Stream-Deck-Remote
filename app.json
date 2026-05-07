@@ -2,7 +2,7 @@
   "expo": {
     "name": "Stream Deck Remote",
     "slug": "streamdeck-remote",
-    "version": "1.0.0",
+    "version": "0.0.2",
     "orientation": "portrait",
     "icon": "./assets/128x128@2x.png",
     "scheme": "streamdeckremote",
@@ -45,6 +45,7 @@
         "foregroundImage": "./assets/128x128@2x.png",
         "backgroundColor": "#101214"
       },
+      "versionCode": 2,
       "usesCleartextTraffic": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.antonis_ge0.streamdeckremote"

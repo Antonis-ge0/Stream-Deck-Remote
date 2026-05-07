@@ -34,14 +34,14 @@ export function HomeScreen({
           icon={Power}
           label="Start PC"
           onPress={onPower}
-          tone="accent"
+          tone="neutral"
         />
         <ActionButton
           colors={colors}
           icon={Keyboard}
           label="Sign In"
           onPress={onSignIn}
-          tone="primary"
+          tone="neutral"
         />
         <ActionButton
           colors={colors}

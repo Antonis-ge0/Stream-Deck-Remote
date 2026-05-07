@@ -1,6 +1,6 @@
 {
   "name": "streamdeck-remote",
-  "version": "1.0.0",
+  "version": "0.0.2",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -13,7 +13,8 @@
     "ios": "expo run:ios",
     "ios:dev": "expo run:ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "version:bump": "node scripts/bump-version.mjs"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.0.2",

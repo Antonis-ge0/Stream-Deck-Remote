@@ -65,6 +65,40 @@ This local release currently uses the generated debug signing config, so Android
 may show it as an app from an unknown source. That is fine for personal testing.
 For sharing broadly, create a real release keystore.
 
+## GitHub Updates
+
+The mobile app checks the latest GitHub Release in:
+
+```text
+https://github.com/Antonis-ge0/Stream-Deck-Remote/releases/latest
+```
+
+When a newer release tag exists and that release has an `.apk` asset, the app
+shows **Install Update**. Android will replace the old app with the new APK
+after you approve the system installer. Android does not allow a normal APK app
+to silently delete itself and install another APK in the background.
+
+To publish a new update:
+
+```bash
+npm run version:bump -- 0.0.3
+```
+
+Then commit the version changes and push a matching tag:
+
+```bash
+git add .
+git commit -m "Release v0.0.3"
+git tag v0.0.3
+git push origin master
+git push origin v0.0.3
+```
+
+The included GitHub Actions workflow builds the APK and attaches it to the
+GitHub Release. The installed app and the update APK must use the same Android
+package name and signing key, otherwise Android will block the update and you
+will need to uninstall the old app first.
+
 ## Wake-on-LAN
 
 Wake-on-LAN sends a UDP magic packet to the configured MAC address. It requires:
