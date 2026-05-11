@@ -74,6 +74,11 @@ const HELP_TIPS = [
       "Use Desktop App to connect to the Windows app WebSocket server, then sync profiles.",
   },
   {
+    title: "Control the mouse",
+    description:
+      "Open Touchpad, connect to the same desktop app, then drag, click, or scroll from your phone.",
+  },
+  {
     title: "Run a button",
     description:
       "Open Desktop App, pick a profile, then tap a listed button and run it from its detail page.",
@@ -204,7 +209,7 @@ export function SettingsMenuScreen({
       await installApkFromUrl(
         availableUpdate.apkUrl,
         availableUpdate.apkName ??
-          `stream-deck-remote-${availableUpdate.version}.apk`
+          `stream-pad-remote-${availableUpdate.version}.apk`
       );
       setUpdateStatus("available");
       setUpdateMessage("Approve the Android installer to replace this app.");
@@ -322,6 +327,11 @@ export function SettingsMenuScreen({
               title="Desktop App"
               description="Connects to the Windows app, syncs profiles, and runs or edits remote buttons."
             />
+            <InfoCard
+              colors={colors}
+              title="Touchpad"
+              description="Uses the same desktop app connection to control the Windows mouse from your phone screen."
+            />
           </View>
         ) : null}
 
@@ -343,7 +353,7 @@ export function SettingsMenuScreen({
             <View style={styles.heroCard}>
               <Text style={styles.drawerTitle}>General Feedback</Text>
               <Text style={styles.drawerText}>
-                How's your experience with Stream Deck so far? We'd love to
+                How's your experience with Stream Pad so far? We'd love to
                 hear your thoughts. Send ideas, bug reports, or UI notes
                 through the feedback form below.
               </Text>
@@ -440,7 +450,7 @@ export function SettingsMenuScreen({
               <Text style={styles.hint}>Version {APP_CONFIG.version}</Text>
               <Text style={styles.heroText}>
                 A mobile remote for starting your PC, signing in with a phone
-                keyboard, syncing Stream Deck profiles, and running desktop
+                keyboard, syncing Stream Pad profiles, and running desktop
                 actions from Android.
               </Text>
               <Text style={styles.author}>Antonis Georgosopoulos</Text>
@@ -487,6 +497,9 @@ function ThemeSwitch({
 }: ThemeSwitchProps) {
   const styles = createStyles(colors);
   const darkActive = theme === "dark";
+  const switchTrackColor = darkActive ? "#101214" : "#ffffff";
+  const switchThumbColor = darkActive ? "#ffffff" : "#101214";
+  const switchBorderColor = darkActive ? "#ffffff" : "#101214";
 
   return (
     <View style={styles.themeSwitch}>
@@ -501,13 +514,17 @@ function ThemeSwitch({
         onPress={() => onChange(darkActive ? "light" : "dark")}
         style={({ pressed }) => [
           styles.themeSwitchTrack,
-          darkActive && styles.activeThemeSwitchTrack,
+          {
+            backgroundColor: switchTrackColor,
+            borderColor: switchBorderColor,
+          },
           pressed && styles.pressed,
         ]}
       >
         <View
           style={[
             styles.themeSwitchThumb,
+            { backgroundColor: switchThumbColor },
             darkActive && styles.activeThemeSwitchThumb,
           ]}
         />
@@ -622,12 +639,7 @@ function createStyles(colors: AppColors) {
       padding: 2,
       width: 48,
     },
-    activeThemeSwitchTrack: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
     themeSwitchThumb: {
-      backgroundColor: colors.primaryText,
       borderRadius: 999,
       height: 22,
       width: 22,

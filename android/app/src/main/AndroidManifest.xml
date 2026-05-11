@@ -35,6 +35,8 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="streampadremote"/>
+        <data android:scheme="exp+stream-pad-remote"/>
         <data android:scheme="streamdeckremote"/>
         <data android:scheme="exp+streamdeck-remote"/>
       </intent-filter>

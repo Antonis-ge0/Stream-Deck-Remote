@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "Stream Deck Remote",
-    "slug": "streamdeck-remote",
-    "version": "0.1.4",
+    "name": "Stream Pad Remote",
+    "slug": "stream-pad-remote",
+    "version": "0.1.5",
     "orientation": "portrait",
     "icon": "./assets/128x128@2x.png",
-    "scheme": "streamdeckremote",
+    "scheme": "streampadremote",
     "userInterfaceStyle": "automatic",
     "plugins": [
       "expo-dev-client",
       [
         "expo-image-picker",
         {
-          "photosPermission": "StreamDeck Remote lets you choose button icons from your photo library."
+          "photosPermission": "Stream Pad Remote lets you choose button icons from your photo library."
         }
       ]
     ],
@@ -24,7 +24,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocalNetworkUsageDescription": "StreamDeck Remote connects to your Stream Deck desktop app on your local network.",
+        "NSLocalNetworkUsageDescription": "Stream Pad Remote connects to your Stream Pad desktop app on your local network.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.antonisge0.streamdeckremote"
@@ -45,7 +45,7 @@
         "foregroundImage": "./assets/128x128@2x.png",
         "backgroundColor": "#101214"
       },
-      "versionCode": 104,
+      "versionCode": 105,
       "usesCleartextTraffic": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.antonis_ge0.streamdeckremote"

@@ -101,6 +101,37 @@ export function useDeckConnection(settings: RemoteSettings) {
     [send]
   );
 
+  const sendMouseMove = useCallback(
+    (dx: number, dy: number) => {
+      return send({
+        type: "mouseMove",
+        dx,
+        dy,
+      });
+    },
+    [send]
+  );
+
+  const sendMouseClick = useCallback(
+    (button: "left" | "right") => {
+      return send({
+        type: "mouseClick",
+        button,
+      });
+    },
+    [send]
+  );
+
+  const sendMouseScroll = useCallback(
+    (dy: number) => {
+      return send({
+        type: "mouseScroll",
+        dy,
+      });
+    },
+    [send]
+  );
+
   useEffect(() => {
     return () => {
       wsRef.current?.close();
@@ -115,6 +146,9 @@ export function useDeckConnection(settings: RemoteSettings) {
     lastError,
     refreshConfig,
     saveConfig,
+    sendMouseClick,
+    sendMouseMove,
+    sendMouseScroll,
     status,
     triggerButton,
   };

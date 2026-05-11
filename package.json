@@ -1,6 +1,6 @@
 {
-  "name": "streamdeck-remote",
-  "version": "0.1.4",
+  "name": "stream-pad-remote",
+  "version": "0.1.5",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",

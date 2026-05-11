@@ -1,5 +1,5 @@
 import { Image, StyleSheet, Text, View } from "react-native";
-import { Keyboard, Monitor, Power } from "lucide-react-native";
+import { Keyboard, Monitor, MousePointer2, Power } from "lucide-react-native";
 import { ActionButton } from "../../components/ActionButton";
 import type { AppColors } from "../../theme/palette";
 
@@ -8,6 +8,7 @@ type HomeScreenProps = {
   onDesktop: () => void;
   onPower: () => void;
   onSignIn: () => void;
+  onTouchpad: () => void;
 };
 
 export function HomeScreen({
@@ -15,6 +16,7 @@ export function HomeScreen({
   onDesktop,
   onPower,
   onSignIn,
+  onTouchpad,
 }: HomeScreenProps) {
   const styles = createStyles(colors);
 
@@ -25,7 +27,7 @@ export function HomeScreen({
           source={require("../../../assets/128x128.png")}
           style={styles.logo}
         />
-        <Text style={styles.title}>Stream Deck Remote</Text>
+        <Text style={styles.title}>Stream Pad Remote</Text>
       </View>
 
       <View style={styles.actions}>
@@ -48,6 +50,13 @@ export function HomeScreen({
           icon={Monitor}
           label="Desktop App"
           onPress={onDesktop}
+          tone="neutral"
+        />
+        <ActionButton
+          colors={colors}
+          icon={MousePointer2}
+          label="Touchpad"
+          onPress={onTouchpad}
           tone="neutral"
         />
       </View>

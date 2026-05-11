@@ -79,7 +79,7 @@ class ApkInstallerModule(
   }
 
   private fun downloadApk(url: String, fileName: String): File {
-    val safeName = sanitizeFileName(fileName.ifBlank { "stream-deck-remote-update.apk" })
+    val safeName = sanitizeFileName(fileName.ifBlank { "stream-pad-remote-update.apk" })
     val apkFile = File(reactContext.cacheDir, safeName)
     val connection = (URL(url).openConnection() as HttpURLConnection).apply {
       connectTimeout = 20_000

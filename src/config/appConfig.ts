@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
-  name: "Stream Deck Remote",
-  version: "v0.1.4",
+  name: "Stream Pad Remote",
+  version: "v0.1.5",
   feedbackFormUrl:
     "https://docs.google.com/forms/d/e/1FAIpQLSeNMxf6YHH9jKiOnXKVtkDlyra7X9zx19LP-UiTwLGW3kAkkA/viewform",
   latestReleaseApiUrl:

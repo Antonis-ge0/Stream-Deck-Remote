@@ -23,6 +23,7 @@ import { HomeScreen } from "../features/home/HomeScreen";
 import { KeyboardSignInPanel } from "../features/keyboard/KeyboardSignInPanel";
 import { PowerPanel } from "../features/power/PowerPanel";
 import { SettingsMenuScreen } from "../features/settings/SettingsMenuScreen";
+import { TouchpadPanel } from "../features/touchpad/TouchpadPanel";
 import { useBluetoothKeyboard } from "../hooks/useBluetoothKeyboard";
 import { useDeckConnection } from "../hooks/useDeckConnection";
 import { useRemoteSettings } from "../hooks/useRemoteSettings";
@@ -31,7 +32,7 @@ import { palettes, type AppColors } from "../theme/palette";
 import type { DeckButton, DeckConfig } from "../types/deck";
 import type { ThemeName, WakeStatus } from "../types/remote";
 
-type AppSection = "home" | "power" | "signIn" | "desktop" | "settings";
+type AppSection = "home" | "power" | "signIn" | "desktop" | "touchpad" | "settings";
 type DesktopView = "connection" | "deck";
 
 export function RemoteControllerApp() {
@@ -57,6 +58,9 @@ export function RemoteControllerApp() {
     lastError,
     refreshConfig,
     saveConfig,
+    sendMouseClick,
+    sendMouseMove,
+    sendMouseScroll,
     status,
     triggerButton,
   } = useDeckConnection(settings);
@@ -156,6 +160,10 @@ export function RemoteControllerApp() {
   function openDesktop() {
     setDesktopView(status === "connected" ? "deck" : "connection");
     navigateTo("desktop");
+  }
+
+  function openTouchpad() {
+    navigateTo("touchpad");
   }
 
   async function wakePc() {
@@ -302,7 +310,7 @@ export function RemoteControllerApp() {
               numberOfLines={1}
               style={styles.title}
             >
-              Stream Deck Remote
+              Stream Pad Remote
             </Text>
             <View style={styles.statusLine}>
               <View
@@ -336,6 +344,7 @@ export function RemoteControllerApp() {
           onDesktop={openDesktop}
           onPower={() => navigateTo("power")}
           onSignIn={() => navigateTo("signIn")}
+          onTouchpad={openTouchpad}
         />
       ) : activeSection === "settings" ? (
         <SettingsMenuScreen
@@ -425,6 +434,28 @@ export function RemoteControllerApp() {
             />
           )}
         </View>
+      ) : activeSection === "touchpad" && status === "connected" ? (
+        <View style={styles.connected}>
+          <View style={styles.connectedTopBar}>
+            <ActionButton
+              colors={colors}
+              icon={ChevronLeft}
+              label="Back"
+              iconOnly
+              onPress={goBack}
+              tone="neutral"
+            />
+          </View>
+
+          <TouchpadPanel
+            colors={colors}
+            endpoint={endpoint}
+            onMouseClick={sendMouseClick}
+            onMouseMove={sendMouseMove}
+            onMouseScroll={sendMouseScroll}
+            onNotice={showNotice}
+          />
+        </View>
       ) : (
         <ScrollView
           contentContainerStyle={styles.setupContent}
@@ -469,6 +500,19 @@ export function RemoteControllerApp() {
           ) : null}
 
           {activeSection === "desktop" ? (
+            <ConnectionPanel
+              colors={colors}
+              endpoint={endpoint}
+              lastError={lastError}
+              onConnect={connect}
+              onDisconnect={disconnect}
+              onSettingsChange={updateSettings}
+              settings={settings}
+              status={status}
+            />
+          ) : null}
+
+          {activeSection === "touchpad" ? (
             <ConnectionPanel
               colors={colors}
               endpoint={endpoint}

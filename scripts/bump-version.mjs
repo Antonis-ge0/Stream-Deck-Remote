@@ -44,7 +44,7 @@ replaceInFile(
   `versionName "${nextVersion}"`
 );
 
-console.log(`Updated Stream Deck Remote to v${nextVersion}.`);
+console.log(`Updated Stream Pad Remote to v${nextVersion}.`);
 
 function updateJson(path, updater) {
   const json = JSON.parse(readFileSync(path, "utf8"));

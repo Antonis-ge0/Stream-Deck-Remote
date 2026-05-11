@@ -198,9 +198,9 @@ class BluetoothKeyboardModule(
 
   private fun registerWithProxy(proxy: BluetoothHidDevice) {
     val sdp = BluetoothHidDeviceAppSdpSettings(
-      "StreamDeck Remote Keyboard",
+      "Stream Pad Remote Keyboard",
       "Manual phone keyboard for Windows sign-in",
-      "StreamDeck Remote",
+      "Stream Pad Remote",
       0x40.toByte(),
       keyboardDescriptor
     )
