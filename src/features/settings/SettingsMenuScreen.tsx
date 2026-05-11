@@ -415,6 +415,7 @@ export function SettingsMenuScreen({
                 busy={updateStatus === "installing"}
                 onPress={installUpdate}
                 tone="primary"
+                variant="drawerPrimary"
               />
             ) : null}
 

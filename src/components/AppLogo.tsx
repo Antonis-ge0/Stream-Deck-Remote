@@ -12,9 +12,6 @@ export function AppLogo({ size }: AppLogoProps) {
         cy="128"
         fill="#ffffff"
         r="125"
-        stroke="#111113"
-        strokeOpacity="0.16"
-        strokeWidth="2"
       />
       <Circle
         cx="128"

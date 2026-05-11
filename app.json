@@ -2,7 +2,7 @@
   "expo": {
     "name": "Stream Pad Remote",
     "slug": "stream-pad-remote",
-    "version": "0.1.9",
+    "version": "0.1.10",
     "orientation": "portrait",
     "icon": "./assets/128x128@2x.png",
     "scheme": "streampadremote",
@@ -19,7 +19,7 @@
     "splash": {
       "image": "./assets/128x128@2x.png",
       "resizeMode": "contain",
-      "backgroundColor": "#101214"
+      "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
@@ -43,9 +43,9 @@
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/128x128@2x.png",
-        "backgroundColor": "#101214"
+        "backgroundColor": "#ffffff"
       },
-      "versionCode": 109,
+      "versionCode": 110,
       "usesCleartextTraffic": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.antonis_ge0.streamdeckremote"

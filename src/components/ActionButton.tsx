@@ -8,6 +8,7 @@ type ActionButtonProps = {
   label: string;
   onPress: () => void;
   tone?: "primary" | "accent" | "danger" | "neutral";
+  variant?: "default" | "drawerPrimary";
   busy?: boolean;
   disabled?: boolean;
   iconOnly?: boolean;
@@ -22,6 +23,7 @@ export function ActionButton({
   label,
   onPress,
   tone = "neutral",
+  variant = "default",
 }: ActionButtonProps) {
   const styles = createStyles(colors);
   const fg = tone === "neutral" ? colors.text : colors.primaryText;
@@ -35,6 +37,7 @@ export function ActionButton({
       style={({ pressed }) => [
         styles.button,
         styles[tone],
+        variant === "drawerPrimary" && styles.drawerPrimary,
         iconOnly && styles.iconOnly,
         (busy || disabled) && styles.disabled,
         pressed && styles.pressed,
@@ -77,6 +80,13 @@ function createStyles(colors: AppColors) {
     primary: {
       backgroundColor: colors.primary,
       borderColor: colors.primary,
+    },
+    drawerPrimary: {
+      borderRadius: 14,
+      justifyContent: "flex-start",
+      minHeight: 50,
+      paddingVertical: 14,
+      width: "100%",
     },
     accent: {
       backgroundColor: colors.accent,
